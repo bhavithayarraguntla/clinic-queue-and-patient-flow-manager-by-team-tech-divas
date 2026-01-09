@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Smart Clinic Queue System | Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* BACKGROUND */
+body{
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:
+    linear-gradient(rgba(10,94,165,0.88), rgba(20,160,160,0.88)),
+    url("https://images.unsplash.com/photo-1586773860418-d37222d8fce3");
+  background-size:cover;
+  background-position:center;
+}
+
+/* LOGIN BOX */
+.container{
+  width:360px;
+  background:#ffffff;
+  padding:30px 28px;
+  border-radius:14px;
+  box-shadow:0 20px 45px rgba(0,0,0,0.25);
+}
+
+/* TITLE */
+.logo{
+  text-align:center;
+  font-size:22px;
+  font-weight:700;
+  color:#0a5ea5;
+}
+.sub{
+  text-align:center;
+  font-size:13px;
+  color:#6c757d;
+  margin-bottom:18px;
+}
+h2{
+  text-align:center;
+  color:#0a5ea5;
+  margin-bottom:14px;
+}
+
+/* INPUTS */
+input, select{
+  width:100%;
+  padding:11px;
+  margin:8px 0;
+  border-radius:7px;
+  border:1px solid #ced4da;
+  font-size:14px;
+}
+input:focus, select:focus{
+  outline:none;
+  border-color:#0a5ea5;
+}
+
+/* BUTTON */
+button{
+  width:100%;
+  padding:12px;
+  margin-top:12px;
+  border:none;
+  border-radius:7px;
+  background:#0a5ea5;
+  color:white;
+  font-size:15px;
+  font-weight:600;
+  cursor:pointer;
+}
+button:hover{
+  background:#084c86;
+}
+
+/* SWITCH TEXT */
+.switch{
+  text-align:center;
+  margin-top:16px;
+  color:#0a5ea5;
+  font-size:14px;
+  font-weight:600;
+  cursor:pointer;
+}
+.switch span{
+  text-decoration:underline;
+}
+
+/* FOOTER */
+.footer{
+  text-align:center;
+  margin-top:10px;
+  font-size:12px;
+  color:#adb5bd;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <div class="logo">🏥 Smart Clinic</div>
+  <div class="sub">Digital Queue Management System</div>
+
+  <h2 id="title">Login</h2>
+
+  <form id="loginForm">
+    <input type="text" id="loginUsername" placeholder="Username" required>
+    <input type="password" id="loginPassword" placeholder="Password" required>
+    <button type="submit">Login</button>
+  </form>
+
+  <form id="signupForm" style="display:none;">
+    <input type="text" id="signupName" placeholder="Full Name" required>
+    <input type="text" id="signupUsername" placeholder="Username" required>
+    <input type="password" id="signupPassword" placeholder="Password (min 6 chars)" required>
+    <select id="signupRole" required>
+      <option value="">Select Role</option>
+      <option value="doctor">Doctor</option>
+      <option value="staff">Staff</option>
+      <option value="patient">Patient</option>
+    </select>
+    <button type="submit">Create Account</button>
+  </form>
+
+  <div class="switch" id="toggle">
+    Don't have an account? <span>Sign Up</span>
+  </div>
+
+  <div class="footer">Team TECHDIVAS © Smart Clinic System</div>
+</div>
+
+<script type="module">
+import { db } from "./js/firebase.js";
+import { collection, addDoc, getDocs, query, where } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const loginForm = document.getElementById("loginForm");
+const signupForm = document.getElementById("signupForm");
+const toggle = document.getElementById("toggle");
+const title = document.getElementById("title");
+
+/* SWITCH LOGIN / SIGNUP UI */
+toggle.onclick = () => {
+  if (loginForm.style.display !== "none") {
+    loginForm.style.display = "none";
+    signupForm.style.display = "block";
+    title.innerText = "Sign Up";
+    toggle.innerHTML = 'Already have an account? <span>Login</span>';
+  } else {
+    loginForm.style.display = "block";
+    signupForm.style.display = "none";
+    title.innerText = "Login";
+    toggle.innerHTML = 'Don\'t have an account? <span>Sign Up</span>';
+  }
+};
+
+/* SIGN UP - SAVE TO FIRESTORE */
+signupForm.onsubmit = async (e) => {
+  e.preventDefault();
+
+  const name = document.getElementById("signupName").value;
+  const username = document.getElementById("signupUsername").value.toLowerCase().trim();
+  const password = document.getElementById("signupPassword").value;
+  const role = document.getElementById("signupRole").value;
+
+  if (password.length < 6) {
+    alert("Password must be at least 6 characters");
+    return;
+  }
+
+  try {
+    // Check if username exists in Firestore
+    const q = query(collection(db, "users"), where("username", "==", username));
+    const querySnapshot = await getDocs(q);
+
+    if (!querySnapshot.empty) {
+      alert("Username already exists in our database!");
+      return;
+    }
+
+    // Add user to Firestore
+    await addDoc(collection(db, "users"), { name, username, password, role });
+    
+    alert("Account created successfully! Please login.");
+    location.reload(); // Refresh to show login form
+  } catch (error) {
+    console.error("Signup Error:", error);
+    alert("Error creating account. Check console.");
+  }
+};
+
+/* LOGIN - CHECK FIRESTORE */
+loginForm.onsubmit = async (e) => {
+  e.preventDefault();
+
+  const username = document.getElementById("loginUsername").value.toLowerCase().trim();
+  const password = document.getElementById("loginPassword").value;
+
+  try {
+    // Query Firestore for matching credentials
+    const q = query(collection(db, "users"), 
+      where("username", "==", username), 
+      where("password", "==", password)
+    );
+    
+    const querySnapshot = await getDocs(q);
+
+    if (querySnapshot.empty) {
+      alert("Invalid username or password");
+      return;
+    }
+
+    let userData;
+    querySnapshot.forEach(doc => {
+      userData = doc.data();
+    });
+
+    // Save user info for session
+    localStorage.setItem("loggedInUser", JSON.stringify(userData));
+
+    // Redirect based on role
+    if (userData.role === "doctor") location.href = "doctor.html";
+    else if (userData.role === "staff") location.href = "staff.html";
+    else location.href = "patient.html";
+
+  } catch (error) {
+    console.error("Login Error:", error);
+    alert("Login failed. Check internet/console.");
+  }
+};
+</script>
+
+</body>
+</html>

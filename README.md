@@ -62,21 +62,21 @@ The system automatically updates the queue and wait times.
 
 4. System Logic & Flow Control
 
-Queue logic is managed using rule-based JavaScript logic (no AI/ML).
+    Queue logic is managed using rule-based JavaScript logic (no AI/ML).
 
-Wait time is calculated based on:
+    Wait time is calculated based on:
 
-Queue length
+    Queue length
 
-Average consultation time (predefined)
+    Average consultation time (predefined)
 
-Queue updates are reflected instantly across:
+    Queue updates are reflected instantly across:
 
-Patient view
+       Patient view
 
-Staff dashboard
+       Staff dashboard
 
-Doctor dashboard
+       Doctor dashboard
 
 All data exists temporarily in browser memory and resets when the session ends.
 
